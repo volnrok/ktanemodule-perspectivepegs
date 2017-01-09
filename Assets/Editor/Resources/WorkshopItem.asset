@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cf2299c8864afe4ab42466f546ae20d, type: 3}
+  m_Name: WorkshopItem
+  m_EditorClassIdentifier: 
+  WorkshopPublishedFileID: 769604567
+  Title: On the Subject of Perspective Pegs
+  Description: '[i]Everything is different from the perspective of another.[/i]
+
+
+    [h1]About[/h1]
+
+    Find a sequence of colours by rotating the bomb to view different perspective
+    sequences.
+
+
+    May cause side effects if used at the same time as Motion Sense mod.
+
+
+    [h1]Manual[/h1]
+
+    A PDF of the manual is included in the download, you can also download here:
+
+    https://dl.dropboxusercontent.com/u/59698974/Modules/PerspectivePegsManual.pdf
+
+
+    [h1]Module ID[/h1]
+
+    spwizPerspectivePegs'
+  PreviewImage: {fileID: 2800000, guid: 59f162d04b35a9347a238287a5f3dbe2, type: 3}
+  Tags:
+  - Regular Module
