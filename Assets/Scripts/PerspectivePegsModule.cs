@@ -671,7 +671,6 @@ public class PerspectivePegsModule : MonoBehaviour
 
     void Update()
     {
-
         if (Input.GetKeyDown("1"))
         {
             HandlePress(0);
@@ -699,7 +698,6 @@ public class PerspectivePegsModule : MonoBehaviour
             {
                 if (IsUp[i])
                 {
-
                     // Move pegs down
                     Lerps[i] -= Time.deltaTime / DURATION;
                     if (Lerps[i] <= 0)
@@ -744,12 +742,15 @@ public class PerspectivePegsModule : MonoBehaviour
 
                                 if (win)
                                 {
+                                    Debug.LogFormat("[Perspective Pegs #{0}] Module solved.", moduleId);
                                     BombModule.HandlePass();
                                     isComplete = true;
                                     MoveAllDown();
                                 }
                                 else
                                 {
+                                    var names = "top|top-right|bottom-right|bottom-left|top-left".Split('|');
+                                    Debug.LogFormat("[Perspective Pegs #{0}] You entered: {1}. Strike.", moduleId, string.Join(", ", EnteredSequence.Select(e => names[e]).ToArray()));
                                     BombModule.HandleStrike();
                                     MoveAllUp();
                                 }
@@ -761,7 +762,6 @@ public class PerspectivePegsModule : MonoBehaviour
                 }
                 else
                 {
-
                     // Move pegs up
                     Lerps[i] += Time.deltaTime / DURATION;
                     if (Lerps[i] >= 1)
@@ -798,7 +798,6 @@ public class PerspectivePegsModule : MonoBehaviour
 
 class Peg
 {
-
     public int prime;
     public List<int> colours;
 
@@ -820,7 +819,6 @@ class Peg
 
 class Permute
 {
-
     public string prime;
     public string alt;
 
