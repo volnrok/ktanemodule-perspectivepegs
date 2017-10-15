@@ -857,18 +857,19 @@ public class PerspectivePegsModule : MonoBehaviour
     IEnumerator RotateBomb(bool frontFace, bool viewPegs, int initialCirclePosition)
     {
         yield return null;
-        float Angle = 40;
+        float Angle = -40;
+        int rotate = viewPegs ? 180 : 0;
         Vector3 lerp0 = viewPegs ? Vector3.zero : new Vector3(frontFace ? -Angle : Angle, 0, 0);
         Vector3 lerp1 = viewPegs ? new Vector3(frontFace ? -Angle : Angle, 0, 0) : Vector3.zero;
         Quaternion current = PegCircle.localRotation;
 
         for (float i = 0; i <= 1; i += Time.deltaTime)
         {
-            PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0, Mathf.Round(VIEWS[initialCirclePosition % 5]), 0), i);
+            PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0, Mathf.Round(VIEWS[initialCirclePosition % 5] + rotate), 0), i);
             yield return Quaternion.Euler(Vector3.Lerp(lerp0,lerp1 , i));
             yield return null;
         }
-        PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[initialCirclePosition % 5]), current.z);
+        PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[initialCirclePosition % 5] + rotate), current.z);
         yield return Quaternion.Euler(lerp1);
         yield return null;
     }
@@ -876,13 +877,14 @@ public class PerspectivePegsModule : MonoBehaviour
     IEnumerator RotatePegCircle(int position)
     {
         yield return null;
+        int rotate = 180;
         Quaternion current = PegCircle.localRotation;
         for (float i = 0; i <= 1; i += Time.deltaTime)
         {
-            PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0,Mathf.Round(VIEWS[position % 5]),0), i);
+            PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0,Mathf.Round(VIEWS[position % 5] + rotate),0), i);
             yield return null;
         }
-        PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[position % 5]), current.z);
+        PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[position % 5] + rotate), current.z);
         yield return null;
     }
 
