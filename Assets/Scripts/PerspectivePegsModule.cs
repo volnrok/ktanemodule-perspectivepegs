@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class PerspectivePegsModule : MonoBehaviour
 {
     public GameObject Board;
+    public Transform PegCircle;
 
     public KMBombInfo BombInfo;
     public KMBombModule BombModule;
@@ -58,7 +62,7 @@ public class PerspectivePegsModule : MonoBehaviour
         // Populate the grid
         for (int x = 0; x < 5; x++)
         {
-            GameObject quad = Board.transform.Find("Thing" + x).Find("Peg" + x).Find("Quads").gameObject;
+            GameObject quad = Board.transform.Find("Things").Find("Thing" + x).Find("Peg" + x).Find("Quads").gameObject;
             for (int y = 0; y < 5; y++)
             {
                 string s = "Colour" + y;
@@ -794,6 +798,204 @@ public class PerspectivePegsModule : MonoBehaviour
         }
         return i;
     }
+
+    private int GetPosition(string position)
+    {
+        switch (position)
+        {
+            case "top":
+            case "t":
+            case "topmiddle":
+            case "topcenter":
+            case "topcentre":
+            case "tm":
+            case "tc":
+            case "middletop":
+            case "middlecenter":
+            case "middlecentre":
+            case "mt":
+            case "mc":
+            case "1":
+                return 0;
+
+            case "tr":
+            case "topright":
+            case "righttop":
+            case "rt":
+            case "2":
+                return 1;
+
+            case "br":
+            case "bottomright":
+            case "rightbottom":
+            case "rb":
+            case "3":
+                return 2;
+
+            case "bl":
+            case "bottomleft":
+            case "leftbottom":
+            case "lb":
+            case "4":
+                return 3;
+
+            case "tl":
+            case "topleft":
+            case "lefttop":
+            case "lt":
+            case "5":
+                return 4;
+            case "pegs":
+                return -2;
+            default:
+                return -1;
+        }
+    }
+
+    private static readonly float[] VIEWS = new float[5]{0f, -72f, -144f, -216f, -288f};
+
+    IEnumerator RotateBomb(bool frontFace, bool viewPegs, int initialCirclePosition)
+    {
+        yield return null;
+        float Angle = 40;
+        Vector3 lerp0 = viewPegs ? Vector3.zero : new Vector3(frontFace ? -Angle : Angle, 0, 0);
+        Vector3 lerp1 = viewPegs ? new Vector3(frontFace ? -Angle : Angle, 0, 0) : Vector3.zero;
+        Quaternion current = PegCircle.localRotation;
+
+        for (float i = 0; i <= 1; i += Time.deltaTime)
+        {
+            PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0, Mathf.Round(VIEWS[initialCirclePosition % 5]), 0), i);
+            yield return Quaternion.Euler(Vector3.Lerp(lerp0,lerp1 , i));
+            yield return null;
+        }
+        PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[initialCirclePosition % 5]), current.z);
+        yield return Quaternion.Euler(lerp1);
+        yield return null;
+    }
+
+    IEnumerator RotatePegCircle(int position)
+    {
+        yield return null;
+        Quaternion current = PegCircle.localRotation;
+        for (float i = 0; i <= 1; i += Time.deltaTime)
+        {
+            PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0,Mathf.Round(VIEWS[position % 5]),0), i);
+            yield return null;
+        }
+        PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[position % 5]), current.z);
+        yield return null;
+    }
+
+    IEnumerator RotatePeg(int position, int rotation)
+    {
+        yield return null;
+        Transform peg = Board.transform.Find("Things").Find("Thing" + (position % 5)).Find("Peg" + (position % 5));
+        Transform pegbase = Board.transform.Find("Things").Find("Thing" + (position % 5)).Find("Base");
+        Quaternion current = peg.localRotation;
+        for (float i = 0; i <= 1; i += Time.deltaTime)
+        {
+            peg.localRotation = Quaternion.Lerp(current, Quaternion.Euler(current.x, current.y, Mathf.Round(VIEWS[rotation % 5])), i);
+            pegbase.localRotation = Quaternion.Lerp(current, Quaternion.Euler(current.x, current.y, Mathf.Round(VIEWS[rotation % 5])), i);
+            yield return null;
+        }
+        peg.localRotation = Quaternion.Euler(current.x, current.y, Mathf.Round(VIEWS[rotation % 5]));
+        pegbase.localRotation = Quaternion.Euler(current.x, current.y, Mathf.Round(VIEWS[rotation % 5]));
+        yield return null;
+
+    }
+
+    private string TwitchHelpMessage = "Look for the peg with specific color using !{0} rotate pegs. Read off the color sequence with !{0} rotate br. Look at the peg lines with !{0} rotate. Look at a specific line with !{0} look bl. Press the pegs with !{0} press bl t br. | Positions in clockwise order are T, TR, BR, BL, TL.";
+    IEnumerator ProcessTwitchCommand(string command)
+    {
+        command = command.ToLowerInvariant();
+        string[] split = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+
+
+
+        if (split[0] == "rotate" || split[0] == "look")
+        {
+            if (split[0] == "look" && (split.Length == 1 || GetPosition(split[1]) < 0))
+                yield break;
+
+            if (split.Length > 2)
+                yield break;
+
+            int start = 0;
+            if (split.Length == 2)
+                start = GetPosition(split[1]);
+
+            if (start == -1)
+                yield break;
+
+            bool rotatepegs = start == -2;
+            if (rotatepegs)
+                start = 0;
+            yield return null;
+
+
+            bool frontFace = transform.root.eulerAngles.z < 45;
+            IEnumerator rotate = RotateBomb(frontFace, true, start);
+            while (rotate.MoveNext())
+                yield return rotate.Current;
+
+            if (rotatepegs)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    for (int j = 0; j < 5; j++)
+                    {
+                        IEnumerator rotatepeg = RotatePeg(i, j + 1);
+                        while (rotatepeg.MoveNext())
+                            yield return rotatepeg.Current;
+                    }
+                }
+            }
+            else
+            {
+                if (split[0] == "rotate")
+                {
+                    for (int i = start; i < (start + 4); i++)
+                    {
+                        yield return new WaitForSeconds(split.Length == 2 ? 0.25f : 3f);
+
+                        rotate = RotatePegCircle(i + 1);
+                        while (rotate.MoveNext())
+                            yield return rotate.Current;
+                    }
+                }
+                if (split[0] == "look")
+                    yield return new WaitForSeconds(4);
+                else
+                    yield return new WaitForSeconds(split.Length == 2 ? 0.25f : 3f);
+            }
+
+            rotate = RotateBomb(frontFace, false, 0);
+            while (rotate.MoveNext())
+                yield return rotate.Current;
+
+        }
+        else if ((split[0] == "press" || split[0] == "submit") && split.Length == 4)
+        {
+            List<KMSelectable> pegs = new List<KMSelectable>();
+            foreach (string pegtopress in split.Skip(1))
+            {
+                if (GetPosition(pegtopress) < 0)
+                    yield break;
+                KMSelectable peg = Pegs[GetPosition(pegtopress)];
+                if (pegs.Contains(peg))
+                    yield break;
+                pegs.Add(peg);
+            }
+            yield return null;
+            foreach (KMSelectable peg in pegs)
+            {
+                peg.OnInteract();
+                yield return new WaitForSeconds(DURATION);
+            }
+            yield return new WaitForSeconds(DURATION);
+        }
+    }
+
 }
 
 class Peg
