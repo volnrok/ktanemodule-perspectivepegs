@@ -66,7 +66,7 @@ public class PerspectivePegsModule : MonoBehaviour
             for (int y = 0; y < 5; y++)
             {
                 string s = "Colour" + y;
-                Transform tr = quad.transform.FindChild(s);
+                Transform tr = quad.transform.Find(s);
                 GameObject go = tr.gameObject;
                 ColourMeshes[x, y] = go.GetComponent<MeshRenderer>();
             }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
-using UnityEditor;
+//using UnityEditor;
 using UnityEngine;
 
 public class FakeBombInfo : MonoBehaviour
@@ -500,7 +500,9 @@ public class TestHarness : MonoBehaviour
 
         //Load all the audio clips in the asset database
         audioClips = new List<AudioClip>();
-        string[] audioClipAssetGUIDs = AssetDatabase.FindAssets("t:AudioClip");
+
+		// Unity is failing builds because of the UnityEditor namespace, so I'm just gonna sweep it under the rug...
+        /*string[] audioClipAssetGUIDs = AssetDatabase.FindAssets("t:AudioClip");
 
         foreach (var guid in audioClipAssetGUIDs)
         {
@@ -510,7 +512,7 @@ public class TestHarness : MonoBehaviour
             {
                 audioClips.Add(clip);
             }
-        }
+        }*/
 
         audioSource = gameObject.AddComponent<AudioSource>();
         KMAudio[] kmAudios = FindObjectsOfType<KMAudio>();

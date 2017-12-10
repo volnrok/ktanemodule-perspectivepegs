@@ -13,5 +13,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: spwizPerspectivePegs
   title: Perspective Pegs
-  version: 0.1.0
+  description: "[i]Everything is different from the perspective of another.[/i]\r\n\r\n[h1]About[/h1]\r\nFind
+    a sequence of colours by rotating the bomb to view different perspective sequences.\r\n\r\nMay
+    cause side effects if used at the same time as Motion Sense mod.\r\n\r\n[h1]Manual[/h1]\r\nA
+    PDF of the manual is included in the download, you can also download here:\r\nhttps://ktane.timwi.de/HTML/Perspective%20Pegs.html\r\n\r\n[h1]Module
+    ID[/h1]\r\nspwizPerspectivePegs"
+  version: 1.1.0
   outputFolder: build
+  previewImage: {fileID: 0}
