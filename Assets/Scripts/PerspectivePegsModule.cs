@@ -845,6 +845,9 @@ public class PerspectivePegsModule : MonoBehaviour
             case "lt":
             case "5":
                 return 4;
+            case "press":
+            case "submit":
+                return -3;
             case "pegs":
                 return -2;
             default:
@@ -863,7 +866,7 @@ public class PerspectivePegsModule : MonoBehaviour
         Vector3 lerp1 = viewPegs ? new Vector3(frontFace ? -Angle : Angle, 0, 0) : Vector3.zero;
         Quaternion current = PegCircle.localRotation;
 
-        for (float i = 0; i <= 1; i += Time.deltaTime)
+        for (float i = 0; i <= 1; i += Time.deltaTime * (TwitchShouldCancelCommand ? 8 : 1))
         {
             PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0, Mathf.Round(VIEWS[initialCirclePosition % 5] + rotate), 0), i);
             yield return Quaternion.Euler(Vector3.Lerp(lerp0,lerp1 , i));
@@ -879,10 +882,10 @@ public class PerspectivePegsModule : MonoBehaviour
         yield return null;
         int rotate = 180;
         Quaternion current = PegCircle.localRotation;
-        for (float i = 0; i <= 1; i += Time.deltaTime)
+        for (float i = 0; i <= 1; i += Time.deltaTime * (TwitchShouldCancelCommand ? 8 : 1))
         {
             PegCircle.localRotation = Quaternion.Lerp(current, Quaternion.Euler(0,Mathf.Round(VIEWS[position % 5] + rotate),0), i);
-            yield return null;
+                yield return null;
         }
         PegCircle.localRotation = Quaternion.Euler(current.x, Mathf.Round(VIEWS[position % 5] + rotate), current.z);
         yield return null;
@@ -894,7 +897,7 @@ public class PerspectivePegsModule : MonoBehaviour
         Transform peg = Board.transform.Find("Things").Find("Thing" + (position % 5)).Find("Peg" + (position % 5));
         Transform pegbase = Board.transform.Find("Things").Find("Thing" + (position % 5)).Find("Base");
         Quaternion current = peg.localRotation;
-        for (float i = 0; i <= 1; i += Time.deltaTime)
+        for (float i = 0; i <= 1; i += Time.deltaTime * (TwitchShouldCancelCommand ? 8 : 1))
         {
             peg.localRotation = Quaternion.Lerp(current, Quaternion.Euler(current.x, current.y, Mathf.Round(VIEWS[rotation % 5])), i);
             pegbase.localRotation = Quaternion.Lerp(current, Quaternion.Euler(current.x, current.y, Mathf.Round(VIEWS[rotation % 5])), i);
@@ -907,42 +910,57 @@ public class PerspectivePegsModule : MonoBehaviour
     }
 
     private string TwitchHelpMessage = "Look for the peg with specific color using !{0} rotate pegs. Read off the color sequence with !{0} rotate br. Look at the peg lines with !{0} rotate. Look at a specific line with !{0} look bl. Press the pegs with !{0} press bl t br. | Positions in clockwise order are T, TR, BR, BL, TL.";
+    private bool TwitchShouldCancelCommand;
+
     IEnumerator ProcessTwitchCommand(string command)
     {
         command = command.ToLowerInvariant();
-        string[] split = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
 
 
+        List<string> split = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
 
         if (split[0] == "rotate" || split[0] == "look")
         {
-            if (split[0] == "look" && (split.Length == 1 || GetPosition(split[1]) < 0))
+            if (split[0] == "look" && (split.Count == 1 || GetPosition(split[1]) < 0))
+            {
+                yield return split.Count == 1 
+                    ? string.Format("sendtochaterror I don't know which peg I should be looking at.") 
+                    : string.Format("sendtochaterror I don't know what you mean by the {0} peg", split[1]);
                 yield break;
+            }
 
-            if (split.Length > 2)
+            if (split.Count > 2)
+            {
+                yield return string.Format("sendtochaterror I don't know how to process command: {0}", command);
                 yield break;
+            }
 
             int start = 0;
-            if (split.Length == 2)
+            if (split.Count == 2)
                 start = GetPosition(split[1]);
 
-            if (start == -1)
+            if (start == -1 || start == -3)
+            {
+                yield return string.Format("sendtochaterror I don't know what you mean by the {0} peg.", split[1]);
                 yield break;
+            }
+                
 
             bool rotatepegs = start == -2;
             if (rotatepegs)
                 start = 0;
             yield return null;
+            yield return null;
 
+            bool frontFace = transform.parent.parent.localEulerAngles.z < 45 || transform.parent.parent.localEulerAngles.z > 315;
 
-            bool frontFace = transform.root.eulerAngles.z < 45;
             IEnumerator rotate = RotateBomb(frontFace, true, start);
             while (rotate.MoveNext())
                 yield return rotate.Current;
 
             if (rotatepegs)
             {
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 5 && !TwitchShouldCancelCommand; i++)
                 {
                     for (int j = 0; j < 5; j++)
                     {
@@ -958,36 +976,69 @@ public class PerspectivePegsModule : MonoBehaviour
                 {
                     for (int i = start; i < (start + 4); i++)
                     {
-                        yield return new WaitForSeconds(split.Length == 2 ? 0.25f : 3f);
+                        if(!TwitchShouldCancelCommand)
+                            yield return new WaitForSeconds(split.Count == 2 ? 0.25f : 3f);
 
                         rotate = RotatePegCircle(i + 1);
                         while (rotate.MoveNext())
                             yield return rotate.Current;
                     }
                 }
-                if (split[0] == "look")
-                    yield return new WaitForSeconds(4);
-                else
-                    yield return new WaitForSeconds(split.Length == 2 ? 0.25f : 3f);
+                if (!TwitchShouldCancelCommand)
+                {
+                    if (split[0] == "look")
+                        yield return new WaitForSeconds(4);
+                    else
+                        yield return new WaitForSeconds(split.Count == 2 ? 0.25f : 3f);
+                }
             }
 
             rotate = RotateBomb(frontFace, false, 0);
             while (rotate.MoveNext())
                 yield return rotate.Current;
 
+            if (TwitchShouldCancelCommand)
+                yield return "cancelled";
         }
-        else if ((split[0] == "press" || split[0] == "submit") && split.Length == 4)
+        else
         {
             List<KMSelectable> pegs = new List<KMSelectable>();
-            foreach (string pegtopress in split.Skip(1))
+            bool skipped = false;
+            foreach (string pegtopress in split)
             {
-                if (GetPosition(pegtopress) < 0)
-                    yield break;
-                KMSelectable peg = Pegs[GetPosition(pegtopress)];
-                if (pegs.Contains(peg))
-                    yield break;
-                pegs.Add(peg);
+                switch (GetPosition(pegtopress))
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                        KMSelectable peg = Pegs[GetPosition(pegtopress)];
+                        if (pegs.Contains(peg))
+                        {
+                            yield return string.Format("sendtochaterror I can't press the {0} peg more than once.", new[] {"top", "top right", "bottom right", "bottom left", "top left"}[GetPosition(pegtopress)]);
+                            yield break;
+                        }
+                        pegs.Add(peg);
+                        break;
+                    case -3:    //Press/submit
+                        skipped = true;
+                        break;
+                    default:
+                        yield return !pegs.Any() && !skipped 
+                            ? string.Format("sendtochaterror Valid commands are 'look', 'rotate', 'press', or 'submit'") 
+                            : string.Format("sendtochaterror I don't know what you mean by the {0} peg.", pegtopress);
+                        yield break;
+                }
+                
             }
+
+            if (pegs.Count != 3)
+            {
+                yield return string.Format("sendtochaterror I need exactly which three pegs to press. You told me to press {0} peg{1}.", pegs.Count, pegs.Count != 1 ? "s" : "");
+                yield break;
+            }
+
             yield return null;
             foreach (KMSelectable peg in pegs)
             {
