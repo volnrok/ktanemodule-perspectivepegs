@@ -718,7 +718,7 @@ public class PerspectivePegsModule : MonoBehaviour
                                 EnteredSequence[NextPosition++] = i;
                             }
 
-                            // Check for mocule solve
+                            // Check for module solve
                             if (NextPosition >= 3)
                             {
                                 bool win = true;
