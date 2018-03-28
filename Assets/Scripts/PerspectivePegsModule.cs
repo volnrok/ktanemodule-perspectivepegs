@@ -909,6 +909,22 @@ public class PerspectivePegsModule : MonoBehaviour
 
     }
 
+    void TwitchHandleForcedSolve()
+    {
+        //Move all of the pegs down.
+        MoveAllDown();
+
+        //Keep souvenir from processing this module.
+        EnteredSequence[0] = -1;
+        EnteredSequence[1] = -1;
+        EnteredSequence[2] = -1;
+
+        //So that the solution won't be checked.
+        isComplete = true;
+        Debug.LogFormat("[Perspective Pegs #{0}] Module forcibly solved.", moduleId);
+        BombModule.HandlePass();
+    }
+
     private string TwitchHelpMessage = "Look for the peg with specific color using !{0} rotate pegs. Read off the color sequence with !{0} rotate br. Look at the peg lines with !{0} rotate. Look at a specific line with !{0} look bl. Press the pegs with !{0} press bl t br. | Positions in clockwise order are T, TR, BR, BL, TL.";
     private bool TwitchShouldCancelCommand;
 
