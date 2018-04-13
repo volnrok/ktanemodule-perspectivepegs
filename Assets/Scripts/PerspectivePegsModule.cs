@@ -675,27 +675,6 @@ public class PerspectivePegsModule : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown("1"))
-        {
-            HandlePress(0);
-        }
-        if (Input.GetKeyDown("2"))
-        {
-            HandlePress(1);
-        }
-        if (Input.GetKeyDown("3"))
-        {
-            HandlePress(2);
-        }
-        if (Input.GetKeyDown("4"))
-        {
-            HandlePress(3);
-        }
-        if (Input.GetKeyDown("5"))
-        {
-            HandlePress(4);
-        }
-
         for (int i = 0; i < 5; i++)
         {
             if (IsMoving[i])
